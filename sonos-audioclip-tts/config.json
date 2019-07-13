@@ -6,7 +6,6 @@
   "url":"https://github.com/kevinvincent/hassio-addons/tree/master/sonos-audioclip-tts",
   "arch": ["armhf", "armv7", "aarch64", "amd64", "i386"],
   "startup": "before",
-  "image": "kevinsundar/{arch}-addon-sonos_audioclip_tts",
   "boot": "auto",
   "options": {
     "SONOS_CLIENT_ID":"",

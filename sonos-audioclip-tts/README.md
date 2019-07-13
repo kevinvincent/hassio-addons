@@ -35,7 +35,7 @@ This will redirect to Sonos and make you login with your Sonos account (make sur
 ### (Maybe) fix redirect
 If you see an Auth Complete message you can skip this step
 
-If you got a cannot find server error in your browser follow this step:
+If you got a "cannot find server" error in your browser follow this step:
 Your url bar will look something like:
 https://hassio.local:8349/redirect?state=none&code=86f62528-99f4-4162-8c01-00f2651bf234
 

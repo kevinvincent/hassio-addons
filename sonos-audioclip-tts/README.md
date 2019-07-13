@@ -10,14 +10,15 @@ This will only work with the devices listed at the top of the page here: [Audio 
 
 ### Install the Add On
 Add this github url as a custom repository as usual and click install under this Add On
+NOTE: This addon is a local build add on. Aka this will build the add on image on your HA machine so installation might take awhile.
 
 ### Create API Key
 To use this addon, you'll need to get an API key from the [Sonos Developer Portal](https://developer.sonos.com). Create an account there, then create a new [Control Integration](https://developer.sonos.com/news/create-client-credentials/).
 
-*Make sure to set your redirect url to `https://hassio.local:8349/redirect` when setting up our API key, EVEN IF you access it without https or access it using the IP or other hostname.* 
+*Make sure to set your redirect url to `https://hassio.local:8349/redirect` when setting up our API key, EVEN IF you access it without https or access it using the IP or other hostname.*
 
 ### Configure Options
-Copy paste your Key into the SONOS_CLIENT_ID field 
+Copy paste your Key into the SONOS_CLIENT_ID field
 Copy paste your Secret into the SONOS_CLIENT_SECRET field.
 Hit Save and Restart the addon.
 
@@ -30,7 +31,7 @@ This will redirect to Sonos and make you login with your Sonos account (make sur
 If you see an Auth Complete message you can skip this step
 
 If you got a cannot find server error in your browser follow this step:
-Your url bar will look something like: 
+Your url bar will look something like:
 https://hassio.local:8349/redirect?state=none&code=86f62528-99f4-4162-8c01-00f2651bf234
 
 Change the first part *https://hassio.local:8349* to match how you usually access home assistant (remove https, change to ip address, etc depending on your setup) and hit enter. You should now see the Auth Complete message

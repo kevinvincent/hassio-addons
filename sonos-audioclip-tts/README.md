@@ -19,8 +19,10 @@ To use this addon, you'll need to get an API key from the [Sonos Developer Porta
 *Make sure to set your redirect url to `https://hassio.local:8349/redirect` when setting up your API key, EVEN IF you access it without https or access it using the IP or other hostname.*
 
 ### Configure Options
-Copy paste your Key into the SONOS_CLIENT_ID field
-Copy paste your Secret into the SONOS_CLIENT_SECRET field.
+Copy paste your Key into the SONOS_CLIENT_ID field on the addon page in Home Assistant
+
+Copy paste your Secret into the SONOS_CLIENT_SECRET field on the addon page in Home Assistant
+
 Hit Save and Restart the addon.
 
 ### Perform auth flow (this only has to be done once)

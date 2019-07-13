@@ -49,7 +49,7 @@ NOTE: For some reason if devices are grouped together (stereo pair for example),
 
 You can play Google TTS announcements by visiting (from your browser or through a GET request from NODE-RED, CURL in HA) `http://hassio.local:8349/api/speakText?playerId=<playerID>&text=<text>&volume=<0 - 100>`
 
-You can play arbitrary audio files using `http://hassio.local:8349/api/speakText?playerId=<playerID>&streamUrl=<url>&volume=<0 - 100>`
+You can play arbitrary audio files using `http://hassio.local:8349/api/playClip?playerId=<playerID>&streamUrl=<url>&volume=<0 - 100>`
 
 I recommend starting with volumes between 20 - 30 and working your way up. 100 is very very loud.
 

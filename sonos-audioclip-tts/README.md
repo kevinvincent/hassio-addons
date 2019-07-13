@@ -9,7 +9,8 @@ This will only work with the devices listed at the top of the page here: [Audio 
 ## Addon Setup
 
 ### Install the Add On
-Add this `https://github.com/kevinvincent/hassio-addons` as a custom repository as usual and click install under this Add On
+Add this `https://github.com/kevinvincent/hassio-addons` as a custom repository as usual and click install under this Add On.
+
 NOTE: This addon is a local build addon. That means that Home Assistant this will build the addon image on your HA machine so installation might take awhile.
 
 ### Create API Key

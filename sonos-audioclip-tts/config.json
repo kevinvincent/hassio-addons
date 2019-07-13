@@ -1,7 +1,7 @@
 {
   "name": "SONOS AudioClip TTS",
   "version": "2.0.3",
-  "slug": "sonos_native_tts",
+  "slug": "sonos_audioclip_tts",
   "description": "Implements the best current tts solution on SONOS using built in audioClip support.",
   "arch": ["armhf", "armv7", "aarch64", "amd64", "i386"],
   "startup": "before",

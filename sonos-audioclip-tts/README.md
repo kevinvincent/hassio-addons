@@ -14,7 +14,7 @@ Add this `https://github.com/kevinvincent/hassio-addons` as a custom repository 
 NOTE: This addon is a local build addon. That means that Home Assistant will build the addon image on your HA machine so installation might take awhile.
 
 ### Create API Key
-To use this addon, you'll need to get an API key from the [Sonos Developer Portal](https://developer.sonos.com). Create an account there, then create a new [Control Integration](https://developer.sonos.com/news/create-client-credentials/).
+To use this addon, you'll need to get an API key from the [Sonos Developer Portal](https://developer.sonos.com). Create an account there, then create a new [Control Integration](https://developer.sonos.com/news/create-client-credentials/). Follow instructions under "Create an integration".
 
 *Make sure to set your redirect url to `https://hassio.local:8349/redirect` when setting up our API key, EVEN IF you access it without https or access it using the IP or other hostname.*
 

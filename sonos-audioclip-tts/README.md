@@ -9,8 +9,8 @@ This will only work with the devices listed at the top of the page here: [Audio 
 ## Addon Setup
 
 ### Install the Add On
-Add this github url as a custom repository as usual and click install under this Add On
-NOTE: This addon is a local build add on. Aka this will build the add on image on your HA machine so installation might take awhile.
+Add this `https://github.com/kevinvincent/hassio-addons` as a custom repository as usual and click install under this Add On
+NOTE: This addon is a local build addon. That means that Home Assistant this will build the addon image on your HA machine so installation might take awhile.
 
 ### Create API Key
 To use this addon, you'll need to get an API key from the [Sonos Developer Portal](https://developer.sonos.com). Create an account there, then create a new [Control Integration](https://developer.sonos.com/news/create-client-credentials/).

@@ -44,7 +44,7 @@ https://hassio.local:8349/redirect?state=none&code=86f62528-99f4-4162-8c01-00f26
 
 Change the first part *https://hassio.local:8349* to match how you usually access home assistant (remove https, change to ip address, etc depending on your setup) like you did in the "Perform Auth flow" step and hit enter. You should now see the Auth Complete message.
 
-### Go to Usage below
+### Go to Usage section below
 
 ## Non HASS.IO install - Using docker
 1. Download this directory from github
@@ -60,6 +60,7 @@ Change the first part *https://hassio.local:8349* to match how you usually acces
 4. `docker run -d -p 8349:8349 -v /data:/data addon.sonos-audioclip-tts npm run server`
 (You may have to map a different host folder to the /data folder depending on where you created that data directory)
 5. Continue with Perform auth flow step and subsequent steps.
+6. Go to Usage section below
 
 ## Non HASS.IO install - Using node
 0. Ensure you have somewhat recent npm and node installed on your machine
@@ -81,6 +82,7 @@ Change the first part *https://hassio.local:8349* to match how you usually acces
 7. Run 'npm run server'
 
 8. Continue with Perform auth flow step and subsequent steps.
+9. Go to Usage section below
 
 ## Usage
 

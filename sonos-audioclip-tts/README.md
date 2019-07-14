@@ -43,6 +43,8 @@ https://hassio.local:8349/redirect?state=none&code=86f62528-99f4-4162-8c01-00f26
 
 Change the first part *https://hassio.local:8349* to match how you usually access home assistant (remove https, change to ip address, etc depending on your setup) like you did in the "Perform Auth flow" step and hit enter. You should now see the Auth Complete message
 
+### Go to Usage!
+
 ## Non HASS.IO install
 0. Ensure you have somewhat recent npm and node installed on your machine
 1. Download this directory from Github.
@@ -64,7 +66,7 @@ Change the first part *https://hassio.local:8349* to match how you usually acces
 
 8. Continue with Perform auth flow step and subsequent steps.
 
-### Usage
+## Usage
 
 As you have noticed by now. This is very different than the built-in TTS in Home Assistant. Basically at this point, you have a webserver running at `http://hassio.local:8349` that you can make requests to.
 

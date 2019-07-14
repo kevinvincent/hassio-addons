@@ -80,7 +80,7 @@ You can play Google TTS announcements by visiting (from your browser or through 
 
 You can play arbitrary audio files using `http://hassio.local:8349/api/playClip?playerId=<playerID>&streamUrl=<url>&volume=<0 - 100>`
 
-I recommend starting with volumes between 20 - 30 and working your way up. 100 is very very loud.
+I recommend starting with volumes between 20 - 30 and working your way up in increments of 5. 100 is very very loud.
 
 
 

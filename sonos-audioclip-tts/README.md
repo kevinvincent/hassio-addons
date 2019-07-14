@@ -4,6 +4,10 @@ This project is based on original code from this [Sonos Developer Blog post]( ht
 
 This TTS method will duck the volume of whatever is currently playing on your SONOS system, play the message/audio file on top, and then bring back the volume. It sounds super nice. You can also play the TTS announcement at a different volume than the currently playing music and you also don't have to deal with snapshotting and restoring playback which has many issues especially with cloud queues on SONOS. The only real negatives are that it isn't as well integrated into hass as the tts service (this addon requires a http call to the addon's webserver) and that it uses the cloud instead of locally connecting to your sonos speakers.
 
+Some negatives:
+* It isn't as well integrated into hass as the tts service (this addon requires a http call to the addon's webserver instead of an HA service call)
+* It uses the cloud instead of locally connecting to your sonos speakers.
+* Playing announcements on speakers in sync is not yet supported. There is a workaround I’m building though.
 
 In a nutshell, we're using the [audioClips](https://developer.sonos.com/reference/control-api/audioclip/) namespace commands in the [Sonos Control API](https://developer.sonos.com/build/direct-control/) to play speech. This speech will be generated using Google Translate's text to speech API. You can also play arbitrary audio files hosted anywhere (including on your home assistant instance).
 

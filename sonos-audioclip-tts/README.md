@@ -74,7 +74,7 @@ First visit `http://hassio.local:8349/api/allClipCapableDevices`
 
 This will list all devices that Sonos says supports playing audio clips. Copy the ID's of devices to which you may want to play TTS messages on.
 
-NOTE: For some reason if devices are grouped together (stereo pair for example), only one will show up here though TTS works on both. This is an issue with the API.
+NOTE: For some reason if devices are grouped together (stereo pair for example), only one will show up here though TTS works on both. This is an issue with the SONOS API but I have a workaround in mind. Its not a big deal though since the speakers will usually be in close proximity if paired that way.
 
 You can play Google TTS announcements by visiting (from your browser or through a GET request from NODE-RED, CURL in HA) `http://hassio.local:8349/api/speakText?playerId=<playerID>&text=<text>&volume=<0 - 100>`
 

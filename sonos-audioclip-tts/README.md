@@ -8,8 +8,7 @@ In a nutshell, we're using the [audioClips](https://developer.sonos.com/referenc
 
 This will only work with the devices listed at the top of the page here: [Audio Clip Documentation](https://developer.sonos.com/reference/control-api/audioclip/)
 
-## Addon Setup
-
+## HASS.IO Addon Setup
 ### Install the Add On
 Add this `https://github.com/kevinvincent/hassio-addons` as a custom repository as usual and click install under this addon.
 
@@ -41,7 +40,27 @@ https://hassio.local:8349/redirect?state=none&code=86f62528-99f4-4162-8c01-00f26
 
 Change the first part *https://hassio.local:8349* to match how you usually access home assistant (remove https, change to ip address, etc depending on your setup) and hit enter. You should now see the Auth Complete message
 
-## Usage
+## Non HASS.IO install
+1. Download this directory from Github.
+
+2. Follow the Create API Key steps above
+
+3. Create an options.json in the directory containing
+```json
+{
+  "SONOS_CLIENT_ID":"YOUR CLIENT ID HERE",
+  "SONOS_CLIENT_SECRET":"YOUR CLIENT SECRET HERE"
+}
+```
+4. Change [this line](https://github.com/kevinvincent/hassio-addons/blob/master/sonos-audioclip-tts/server/index.js#L39) to `let rawconfig = fs.readFileSync('options.json');`
+5. Change [this line](https://github.com/kevinvincent/hassio-addons/blob/master/sonos-audioclip-tts/server/index.js#L46) to `storage.init({dir: 'persist/'});`
+
+6. Run 'npm install'
+7. Run 'npm run server'
+
+8. Continue with Perform auth flow step and subsequent steps.
+
+### Usage
 
 As you have noticed by now. This is very different than the built-in TTS in Home Assistant. Basically at this point, you have a webserver running at `http://hassio.local:8349` that you can make requests to.
 

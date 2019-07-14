@@ -43,7 +43,7 @@ https://hassio.local:8349/redirect?state=none&code=86f62528-99f4-4162-8c01-00f26
 
 Change the first part *https://hassio.local:8349* to match how you usually access home assistant (remove https, change to ip address, etc depending on your setup) like you did in the "Perform Auth flow" step and hit enter. You should now see the Auth Complete message
 
-### Go to Usage!
+### Go to Usage below
 
 ## Non HASS.IO install
 0. Ensure you have somewhat recent npm and node installed on your machine

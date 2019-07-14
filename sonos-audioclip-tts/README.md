@@ -1,4 +1,4 @@
-# HASS.IO Sonos TTS Addon
+# Sonos TTS Addon
 
 This project is based on original code from this [Sonos Developer Blog post]( https://developer.sonos.com/code/making-sonos-talk-with-the-audioclip-api/).
 

@@ -56,7 +56,7 @@ Change the first part *https://hassio.local:8349* to match how you usually acces
   "SONOS_CLIENT_SECRET":"YOUR CLIENT SECRET HERE"
 }
 ```
-4. `docker run -p 8349:8349 -v /data:/data addon.sonos-audioclip-tts npm run server`
+4. `docker run -d -p 8349:8349 -v /data:/data addon.sonos-audioclip-tts npm run server`
 (You may have to map a different host folder to the /data folder depending on where you created that data directory)
 5. Continue with Perform auth flow step and subsequent steps.
 

@@ -41,6 +41,7 @@ https://hassio.local:8349/redirect?state=none&code=86f62528-99f4-4162-8c01-00f26
 Change the first part *https://hassio.local:8349* to match how you usually access home assistant (remove https, change to ip address, etc depending on your setup) and hit enter. You should now see the Auth Complete message
 
 ## Non HASS.IO install
+0. Ensure you have somewhat recent npm and node installed on your machine
 1. Download this directory from Github.
 
 2. Follow the Create API Key steps above
@@ -55,7 +56,7 @@ Change the first part *https://hassio.local:8349* to match how you usually acces
 4. Change [this line](https://github.com/kevinvincent/hassio-addons/blob/master/sonos-audioclip-tts/server/index.js#L39) to `let rawconfig = fs.readFileSync('options.json');`
 5. Change [this line](https://github.com/kevinvincent/hassio-addons/blob/master/sonos-audioclip-tts/server/index.js#L46) to `storage.init({dir: 'persist/'});`
 
-6. Run 'npm install' ensuring you have up to date npm and node installed on your machine
+6. Run 'npm install'
 7. Run 'npm run server'
 
 8. Continue with Perform auth flow step and subsequent steps.

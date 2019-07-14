@@ -55,7 +55,7 @@ Change the first part *https://hassio.local:8349* to match how you usually acces
 4. Change [this line](https://github.com/kevinvincent/hassio-addons/blob/master/sonos-audioclip-tts/server/index.js#L39) to `let rawconfig = fs.readFileSync('options.json');`
 5. Change [this line](https://github.com/kevinvincent/hassio-addons/blob/master/sonos-audioclip-tts/server/index.js#L46) to `storage.init({dir: 'persist/'});`
 
-6. Run 'npm install'
+6. Run 'npm install' ensuring you have up to date npm and node installed on your machine
 7. Run 'npm run server'
 
 8. Continue with Perform auth flow step and subsequent steps.

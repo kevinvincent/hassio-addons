@@ -2,7 +2,7 @@
 
 This project is based on original code from this [Sonos Developer Blog post]( https://developer.sonos.com/code/making-sonos-talk-with-the-audioclip-api/).
 
-This TTS method will duck the volume of whatever is currently playing on your SONOS system, play the message/audio file on top, and then bring back the volume. It sounds super nice. You can also play the TTS announcement at a different volume than the currently playing music and you also don't have to deal with snapshotting and restoring playback which has many issues especially with cloud queues on SONOS. The only real negatives are that it isn't as well integrated into hass as the tts service (this addon requires a http call to the addon's webserver) and that it uses the cloud instead of locally connecting to your sonos speakers.
+This TTS method will duck the volume of whatever is currently playing on your SONOS system, play the message/audio file on top, and then bring back the volume. It sounds super nice. You can also play the TTS announcement at a different volume than the currently playing music and you also don't have to deal with snapshotting and restoring playback which has many issues especially with cloud queues on SONOS.
 
 Some negatives:
 * It isn't as well integrated into hass as the tts service (this addon requires a http call to the addon's webserver instead of an HA service call)

@@ -9,7 +9,7 @@ In a nutshell, we're using the [audioClips](https://developer.sonos.com/referenc
 
 This will only work with the devices listed at the top of the page here: [Audio Clip Documentation](https://developer.sonos.com/reference/control-api/audioclip/)
 
-If you're not using HASS.IO or just want to run this as a server for other uses, scroll down and check out the Non HASS.IO install steps.
+If you're not using HASS.IO scroll down and check out the Non HASS.IO install steps to run it standalone.
 
 ## HASS.IO Addon Setup
 ### Install the Add On

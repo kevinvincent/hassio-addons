@@ -45,13 +45,28 @@ Change the first part *https://hassio.local:8349* to match how you usually acces
 
 ### Go to Usage below
 
-## Non HASS.IO install
+## Non HASS.IO install - Using docker
+1. Download this directory from github
+2. `docker build -t addon.sonos-audioclip-tts --build-arg BUILD_FROM=alpine:latest .`
+2. Follow the Create API Key steps above
+3. Create an `options.json` in a local directory `/data` (or other) containing
+```json
+{
+  "SONOS_CLIENT_ID":"YOUR CLIENT ID HERE",
+  "SONOS_CLIENT_SECRET":"YOUR CLIENT SECRET HERE"
+}
+```
+4. `docker run -p 8349:8349 -v /data:/data addon.sonos-audioclip-tts npm run server`
+(You may have to map a different host folder to the /data folder depending on where you created that data directory)
+5. Continue with Perform auth flow step and subsequent steps.
+
+## Non HASS.IO install - Using node
 0. Ensure you have somewhat recent npm and node installed on your machine
 1. Download this directory from Github.
 
 2. Follow the Create API Key steps above
 
-3. Create an options.json in the directory containing
+3. Create an `options.json` in the directory containing
 ```json
 {
   "SONOS_CLIENT_ID":"YOUR CLIENT ID HERE",

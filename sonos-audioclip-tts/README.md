@@ -90,7 +90,7 @@ Change the first part *https://hassio.local:8349* to match how you usually acces
 
 ## Usage
 
-As you have noticed by now. This is very different than the built-in TTS in Home Assistant. Basically at this point, you have a webserver running at `http://hassio.local:8349` that you can make requests to.
+As you have noticed by now, this is very different than the built-in TTS in Home Assistant. Basically at this point, you have a webserver running at `http://hassio.local:8349` that you can make requests to.
 
 First visit `http://hassio.local:8349/api/allClipCapableDevices`
 

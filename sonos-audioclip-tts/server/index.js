@@ -316,7 +316,7 @@ app.get('/api/speakText', async (req, res) => {
   let speechUrl;
 
   try { // Let's make a call to the google tts api and get the url for our TTS file
-    speechUrl = await googleTTS(text, 'en-US', 1);
+    speechUrl = await googleTTS(text, config.GOOGLE_TTS_LANGUAGE, 1);
   }
   catch (err) {
     speakTextRes.send(JSON.stringify({'success':false,error: err.stack}));

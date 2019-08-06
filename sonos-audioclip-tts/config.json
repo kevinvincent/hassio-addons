@@ -9,11 +9,13 @@
   "boot": "auto",
   "options": {
     "SONOS_CLIENT_ID":"",
-    "SONOS_CLIENT_SECRET":""
+    "SONOS_CLIENT_SECRET":"",
+    "GOOGLE_TTS_LANGUAGE":"en-US"
   },
   "schema": {
     "SONOS_CLIENT_ID": "str",
     "SONOS_CLIENT_SECRET": "str"
+    "GOOGLE_TTS_LANGUAGE": "str"
   },
   "ports": {
      "8349/tcp": 8349

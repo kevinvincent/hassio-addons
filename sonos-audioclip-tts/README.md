@@ -24,7 +24,7 @@ NOTE: This addon is a local build addon. That means that Home Assistant will bui
 ### Create API Key
 To use this addon, you'll need to get an API key from the [Sonos Developer Portal](https://developer.sonos.com). Create an account there, then create a new [Control Integration](https://developer.sonos.com/news/create-client-credentials/). Follow instructions under "Create an integration".
 
-*Make sure to set your redirect url to `https://hassio.local:8349/redirect` when setting up your API key, EVEN IF you access it without https or access it using the IP or other hostname.*
+*Make sure to set your redirect url to `https://hassio.local:8349/redirect` when setting up your API key, EVEN IF you access it without https or access it using the IP or other hostname. Leave the `Event Callback URL` empty!*
 
 ### Configure Options
 Copy paste your Key into the SONOS_CLIENT_ID field on the addon page in Home Assistant

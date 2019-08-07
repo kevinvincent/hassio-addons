@@ -14,7 +14,7 @@
   },
   "schema": {
     "SONOS_CLIENT_ID": "str",
-    "SONOS_CLIENT_SECRET": "str"
+    "SONOS_CLIENT_SECRET": "str",
     "GOOGLE_TTS_LANGUAGE": "str"
   },
   "ports": {

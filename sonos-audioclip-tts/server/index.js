@@ -30,6 +30,7 @@ const simpleOauthModule = require('simple-oauth2');
 const googleTTS = require('google-tts-api');
 const storage = require('node-persist');
 const fs = require('fs');
+const fetch = require('node-fetch');
 
 const app = express();
 app.use(bodyParser.urlencoded({ extended: false }));

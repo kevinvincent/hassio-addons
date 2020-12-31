@@ -3,7 +3,8 @@
   "version": "1.0.0",
   "private": true,
   "dependencies": {
-    "google-tts-api": "0.0.4",
+    "google-tts-api": "0.0.6",
+    "node-fetch": "^2.6.1",
     "node-persist": "^3.0.1",
     "simple-oauth2": "^2.2.1"
   },

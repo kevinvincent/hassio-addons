@@ -333,8 +333,6 @@ app.get('/api/speakHass', async (req, res) => {
     return;
   }
 
-  console.log(speechRes);
-
   const speechResText = await speechRes.text();
 
   try {
@@ -385,6 +383,120 @@ app.get('/api/speakHass', async (req, res) => {
   catch (err) {
     speakHassRes.send(JSON.stringify({ 'success': false, 'error': audioClipResText }));
   }
+});
+
+app.get('/api/speakHassAll', async (req, res) => {
+  await getToken()
+  const text = req.query.text;
+  const volume = req.query.volume;
+  const priority = req.query.prio;
+  const hassUrl = config.HASS_URL;
+  const hassToken = config.HASS_TOKEN;
+
+  const speakTextRes = res;
+  speakTextRes.setHeader('Content-Type', 'application/json');
+  if (authRequired) {
+    res.send(JSON.stringify({ 'success': false, authRequired: true }));
+  }
+
+  // Set the HASS API call parameters
+  let ttsbody = { platform: 'cloud', language: 'en-GB', options: { gender: 'male' }, message: text };
+
+  let speechRes;
+
+  try { // Let's make a call to the HASS api to get our URL
+    speechRes = await fetch(`${hassUrl}/api/tts_get_url`, {
+      method: 'POST',
+      body: JSON.stringify(ttsbody),
+      headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${hassToken}` },
+    });
+  }
+  catch (err) {
+    speakHassRes.send(JSON.stringify({ 'success': false, error: err.stack }));
+    return;
+  }
+
+  const speechResText = await speechRes.text();
+
+  try {
+    const jsonurl = JSON.parse(speechResText);
+    if (jsonurl.url !== undefined) {
+      var speechUrl = jsonurl.url;
+    }
+    else {
+      speakHassRes.send(JSON.stringify({ 'success': false, 'error': json.errorCode }));
+    }
+  }
+  catch (err) {
+    speakHassRes.send(JSON.stringify({ 'success': false, 'error': audioClipResText }));
+  }
+
+  let body
+
+  body = { streamUrl: speechUrl, name: 'Sonos TTS', appId: 'com.me.sonosspeech' };
+  
+
+  if (volume != null) {
+    body.volume = parseInt(volume)
+  }
+  if (priority && (priority.toUpperCase() === "LOW" || priority.toUpperCase() === "HIGH")) {
+    body.priority = priority.toUpperCase()
+  }
+
+  let requestUrls = []
+
+  const allClipCapableDevices = await parseClipCapableDevices(json.households)
+
+  console.log(body)
+
+  for (let householdId in allClipCapableDevices) {
+    let household = allClipCapableDevices[householdId]
+    for (let player of household) {
+      if (!((Array.isArray(exclude) && exclude.includes(player.name)) || exclude === player.name))
+        requestUrls.push(`https://api.ws.sonos.com/control/api/v1/players/${player.id}/audioClip`)
+    }
+  }
+
+  async.map(requestUrls, function (url, callback) {
+    fetch(url, {
+      method: 'POST',
+      body: JSON.stringify(body),
+      headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token.token.access_token}` },
+    })
+      .then(function (response) {
+        response.text()
+          .then(function (text) { callback(null, text); })
+          .catch(function (err) { callback(err, null); });
+      })
+      .catch(function (reason) { callback(reason, null); });
+  },
+    function (err, results) {
+      if (err) {
+        speakTextRes.send(JSON.stringify({ 'success': false, 'error': err })); // Error in Fetch in one/more devices
+      }
+      else {
+        // Check Sonos return value of all requests
+        let success = true, error = "";
+
+        for (let resultId in results) {
+          const result = results[resultId]
+          const json = JSON.parse(result);
+
+          if (json.id === undefined) {
+            success = false
+            error += json.errorCode
+          }
+        }
+
+        if (success) {
+          speakTextRes.send(JSON.stringify({ 'success': true }));
+        }
+        else {
+          speakTextRes.send(JSON.stringify({ 'success': false, 'error': error }));
+        }
+      }
+    }
+  );
 });
 
 app.get('/api/playClip', async (req, res) => {

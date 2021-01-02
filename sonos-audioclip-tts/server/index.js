@@ -296,7 +296,7 @@ app.get('/api/speakText', async (req, res) => {
   }
 });
 
-app.get('/api/speakTTS', async (req, res) => {
+app.get('/api/speakHass', async (req, res) => {
   await getToken()
   const text = req.query.text;
   const volume = req.query.volume;
@@ -305,14 +305,14 @@ app.get('/api/speakTTS', async (req, res) => {
   const hassUrl = config.HASS_URL;
   const hassToken = config.HASS_TOKEN;
 
-  const speakTTSRes = res;
-  speakTTSRes.setHeader('Content-Type', 'application/json');
+  const speakHassRes = res;
+  speakHassRes.setHeader('Content-Type', 'application/json');
   if (authRequired) {
     res.send(JSON.stringify({ 'success': false, authRequired: true }));
   }
 
   if (text == null || playerId == null) { // Return if either is null
-    speakTTSRes.send(JSON.stringify({ 'success': false, error: 'Missing Parameters' }));
+    speakHassRes.send(JSON.stringify({ 'success': false, error: 'Missing Parameters' }));
     return;
   }
 
@@ -330,7 +330,7 @@ app.get('/api/speakTTS', async (req, res) => {
     });
   }
   catch (err) {
-    speakTTSRes.send(JSON.stringify({ 'success': false, error: err.stack }));
+    speakHassRes.send(JSON.stringify({ 'success': false, error: err.stack }));
     return;
   }
 
@@ -354,7 +354,7 @@ app.get('/api/speakTTS', async (req, res) => {
     });
   }
   catch (err) {
-    speakTTSRes.send(JSON.stringify({ 'success': false, error: err.stack }));
+    speakHassRes.send(JSON.stringify({ 'success': false, error: err.stack }));
     return;
   }
 
@@ -363,14 +363,14 @@ app.get('/api/speakTTS', async (req, res) => {
   try {
     const json = JSON.parse(audioClipResText);
     if (json.id !== undefined) {
-      speakTTSRes.send(JSON.stringify({ 'success': true }));
+      speakHassRes.send(JSON.stringify({ 'success': true }));
     }
     else {
-      speakTTSRes.send(JSON.stringify({ 'success': false, 'error': json.errorCode }));
+      speakHassRes.send(JSON.stringify({ 'success': false, 'error': json.errorCode }));
     }
   }
   catch (err) {
-    speakTTSRes.send(JSON.stringify({ 'success': false, 'error': audioClipResText }));
+    speakHassRes.send(JSON.stringify({ 'success': false, 'error': audioClipResText }));
   }
 });
 

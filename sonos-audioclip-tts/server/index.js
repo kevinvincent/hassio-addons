@@ -22,10 +22,11 @@ The MIT License (MIT)
  OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  SOFTWARE.
  */
+
 const express = require('express');
 const bodyParser = require('body-parser');
 const pino = require('express-pino-logger')();
-const { AuthorizationCode } = require('simple-oauth2');
+const simpleOauthModule = require('simple-oauth2');
 const googleTTS = require('google-tts-api');
 const storage = require('node-persist');
 const fs = require('fs');
@@ -50,7 +51,7 @@ const baseUrl = 'http://' + localUrl + ':' + port
 const baseUrlRedirect = localUrl === "localhost" ? 'http://' + localUrl + ':' + port : 'https://' + localUrl + ':' + port
 
 // This section services the OAuth2 flow
-const oauthConfig = {
+const oauth2 = simpleOauthModule.create({
   client: {
     id: config.SONOS_CLIENT_ID,
     secret: config.SONOS_CLIENT_SECRET,
@@ -60,12 +61,10 @@ const oauthConfig = {
     tokenPath: '/login/v3/oauth/access',
     authorizePath: '/login/v3/oauth',
   },
-};
-const client = new AuthorizationCode(oauthConfig);
-
+});
 
 // Authorization uri definition
-const authorizationUri = client.authorizeURL({
+const authorizationUri = oauth2.authorizationCode.authorizeURL({
   redirect_uri: baseUrlRedirect + '/redirect',
   scope: 'playback-control-all',
   state: 'none',
@@ -89,7 +88,7 @@ async function getToken() {
     return;
   }
   try {
-    token = client.createToken(currentToken.token);
+    token = oauth2.accessToken.create(currentToken.token);
 
     if (token.expired()) {
       try {
@@ -193,16 +192,16 @@ app.get('/redirect', async (req, res) => {
   };
 
   try {
-    const result = await client.getToken(options);
+    const result = await oauth2.authorizationCode.getToken(options);
 
-    token = client.createToken(result); // Save the token for use in Sonos API calls
+    console.log('The resulting token: ', result);
 
-    console.log('The resulting token: ', token);
+    token = oauth2.accessToken.create(result); // Save the token for use in Sonos API calls
 
-    await storage.setItem('token', token); // And save it to local storage for use the next time we start the app
+    await storage.setItem('token',token); // And save it to local storage for use the next time we start the app
     authRequired = false; // And we're all good now. Don't need auth any more
     res.send('Auth Complete');
-  } catch (error) {
+  } catch(error) {
     console.error('Access Token Error', error.message);
     return res.status(500).json('Authentication failed');
   }

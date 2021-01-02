@@ -322,21 +322,12 @@ app.get('/api/speakHass', async (req, res) => {
   let speechRes;
 
   try { // Let's make a call to the HASS api to get our URL
-
+    var obj;
     speechRes = await fetch(`${hassUrl}/api/tts_get_url`, {
       method: 'POST',
       body: JSON.stringify(ttsbody),
       headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${hassToken}` },
-    });
-  }
-  catch (err) {
-    speakHassRes.send(JSON.stringify({ 'success': false, error: err.stack }));
-    return;
-  }
-
-  try { // Let's make a call to the HASS api to get our URL
-
-    speechResURL = await speechRes.json().url;
+    }).then(res => res.json()).then(data => obj = data).then(() => console.log(obj));
   }
   catch (err) {
     speakHassRes.send(JSON.stringify({ 'success': false, error: err.stack }));

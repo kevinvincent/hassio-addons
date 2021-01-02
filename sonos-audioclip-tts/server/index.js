@@ -334,7 +334,7 @@ app.get('/api/speakHass', async (req, res) => {
     return;
   }
 
-  let body = { streamUrl: speechResURL, name: 'Sonos TTS', appId: 'com.me.sonosspeech' };
+  let body = { streamUrl: speechRes.url, name: 'Sonos TTS', appId: 'com.me.sonosspeech' };
   if (volume != null) {
     body.volume = parseInt(volume)
   }

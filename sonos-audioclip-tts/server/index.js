@@ -387,6 +387,7 @@ app.get('/api/speakHass', async (req, res) => {
 
 app.get('/api/speakHassAll', async (req, res) => {
   await getToken()
+  const json = await getHouseholds(res)
   const text = req.query.text;
   const volume = req.query.volume;
   const priority = req.query.prio;

@@ -334,7 +334,14 @@ app.get('/api/speakHass', async (req, res) => {
     return;
   }
 
-  const speechResURL = await speechRes.json().url;
+  try { // Let's make a call to the HASS api to get our URL
+
+    speechResURL = await speechRes.json().url;
+  }
+  catch (err) {
+    speakHassRes.send(JSON.stringify({ 'success': false, error: err.stack }));
+    return;
+  }
 
   let body = { streamUrl: speechResURL, name: 'Sonos TTS', appId: 'com.me.sonosspeech' };
   if (volume != null) {

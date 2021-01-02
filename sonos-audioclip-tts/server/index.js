@@ -326,7 +326,7 @@ app.get('/api/speakHass', async (req, res) => {
       method: 'POST',
       body: JSON.stringify(ttsbody),
       headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${hassToken}` },
-    }).then(res => res.json());
+    });
   }
   catch (err) {
     speakHassRes.send(JSON.stringify({ 'success': false, error: err.stack }));
@@ -335,9 +335,19 @@ app.get('/api/speakHass', async (req, res) => {
 
   console.log(speechRes);
 
-  console.log(speechRes[0].url);
+  const speechResText = await speechRes.text();
 
-  let body = { streamUrl: speechRes, name: 'Sonos TTS', appId: 'com.me.sonosspeech' };
+  try {
+    const jsonurl = JSON.parse(speechResText);
+    if (jsonurl.url !== undefined) {
+      var speechUrl = jsonurl.url;
+    }
+    else {
+      speakHassRes.send(JSON.stringify({ 'success': false, 'error': json.errorCode }));
+    }
+  }
+
+  let body = { streamUrl: speechUrl, name: 'Sonos TTS', appId: 'com.me.sonosspeech' };
   if (volume != null) {
     body.volume = parseInt(volume)
   }

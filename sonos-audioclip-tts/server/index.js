@@ -389,6 +389,7 @@ app.get('/api/speakHassAll', async (req, res) => {
   await getToken()
   const json = await getHouseholds(res)
   const text = req.query.text;
+  const exclude = req.query.exclude;
   const volume = req.query.volume;
   const priority = req.query.prio;
   const hassUrl = config.HASS_URL;
@@ -575,7 +576,7 @@ app.get('/api/playClipAll', async (req, res) => {
   let streamUrl = req.query.streamUrl;
   const volume = req.query.volume;
   const priority = req.query.prio;
-  const exclude = req.query.exclude
+  const exclude = req.query.exclude;
 
   const speakTextRes = res;
   speakTextRes.setHeader('Content-Type', 'application/json');

@@ -346,7 +346,9 @@ app.get('/api/speakHass', async (req, res) => {
       speakHassRes.send(JSON.stringify({ 'success': false, 'error': json.errorCode }));
     }
   }
-
+  catch (err) {
+    speakHassRes.send(JSON.stringify({ 'success': false, 'error': audioClipResText }));
+  }
   let body = { streamUrl: speechUrl, name: 'Sonos TTS', appId: 'com.me.sonosspeech' };
   if (volume != null) {
     body.volume = parseInt(volume)

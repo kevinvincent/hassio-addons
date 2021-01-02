@@ -296,6 +296,84 @@ app.get('/api/speakText', async (req, res) => {
   }
 });
 
+app.get('/api/speakTTS', async (req, res) => {
+  await getToken()
+  const text = req.query.text;
+  const volume = req.query.volume;
+  const playerId = req.query.playerId;
+  const priority = req.query.prio;
+  const hassUrl = config.HASS_URL;
+  const hassToken = config.HASS_TOKEN;
+
+  const speakTTSRes = res;
+  speakTTSRes.setHeader('Content-Type', 'application/json');
+  if (authRequired) {
+    res.send(JSON.stringify({ 'success': false, authRequired: true }));
+  }
+
+  if (text == null || playerId == null) { // Return if either is null
+    speakTTSRes.send(JSON.stringify({ 'success': false, error: 'Missing Parameters' }));
+    return;
+  }
+
+  // Set the HASS API call parameters
+  let ttsbody = { platform: 'cloud', language: 'en-GB', options: { gender: 'male' }, message: text };
+
+  let speechRes;
+
+  try { // Let's make a call to the HASS api to get our URL
+
+    speechRes = await fetch(`${hassUrl}/api/tts_get_url`, {
+      method: 'POST',
+      body: JSON.stringify(ttsbody),
+      headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${hassToken}` },
+    });
+  }
+  catch (err) {
+    speakTTSRes.send(JSON.stringify({ 'success': false, error: err.stack }));
+    return;
+  }
+
+  const speechResURL = await speechRes.json().url;
+
+  let body = { streamUrl: speechResURL, name: 'Sonos TTS', appId: 'com.me.sonosspeech' };
+  if (volume != null) {
+    body.volume = parseInt(volume)
+  }
+  if (priority && (priority.toUpperCase() === "LOW" || priority.toUpperCase() === "HIGH")) {
+    body.priority = priority.toUpperCase()
+  }
+
+  let audioClipRes;
+
+  try { // And call the audioclip API, with the playerId in the url path, and the text in the JSON body
+    audioClipRes = await fetch(`https://api.ws.sonos.com/control/api/v1/players/${playerId}/audioClip`, {
+      method: 'POST',
+      body: JSON.stringify(body),
+      headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token.token.access_token}` },
+    });
+  }
+  catch (err) {
+    speakTTSRes.send(JSON.stringify({ 'success': false, error: err.stack }));
+    return;
+  }
+
+  const audioClipResText = await audioClipRes.text(); // Same thing as above: convert to text, since occasionally the Sonos API returns text
+
+  try {
+    const json = JSON.parse(audioClipResText);
+    if (json.id !== undefined) {
+      speakTTSRes.send(JSON.stringify({ 'success': true }));
+    }
+    else {
+      speakTTSRes.send(JSON.stringify({ 'success': false, 'error': json.errorCode }));
+    }
+  }
+  catch (err) {
+    speakTTSRes.send(JSON.stringify({ 'success': false, 'error': audioClipResText }));
+  }
+});
+
 app.get('/api/playClip', async (req, res) => {
   await getToken()
   let streamUrl = req.query.streamUrl;

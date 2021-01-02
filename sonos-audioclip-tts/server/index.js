@@ -326,7 +326,7 @@ app.get('/api/speakHass', async (req, res) => {
       method: 'POST',
       body: JSON.stringify(ttsbody),
       headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${hassToken}` },
-    }).json();
+    }).then(res => res.json());
   }
   catch (err) {
     speakHassRes.send(JSON.stringify({ 'success': false, error: err.stack }));

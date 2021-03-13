@@ -11,8 +11,8 @@
   "options": {
     "SONOS_CLIENT_ID": "",
     "SONOS_CLIENT_SECRET": "",
-    "GOOGLE_TTS_LANGUAGE": "en-US",
-    "CLOUD_TTS_LANGUAGE": "en-US",
+    "GOOGLE_TTS_LANGUAGE": "en-GB",
+    "CLOUD_TTS_LANGUAGE": "en-GB",
     "CLOUD_TTS_GENDER": "male"
   },
   "schema": {

@@ -1,23 +1,28 @@
 {
-  "name": "SONOS AudioClip TTS",
+  "name": "SONOS AudioClip + Nabu Casa Cloud TTS",
   "version": "2.0.3",
-  "slug": "sonos_audioclip_tts",
-  "description": "Implements the best current tts solution on SONOS using built in audioClip support.",
-  "url":"https://github.com/kevinvincent/hassio-addons/tree/master/sonos-audioclip-tts",
+  "slug": "sonos_audioclip_cloud_tts",
+  "description": "Implements the Nabu Casa Cloud TTS on SONOS using built in audioClip support, based on the work by kevinvincent.",
+  "url": "https://github.com/willscottuk/hassio-addons/tree/master/sonos-audioclip-tts",
   "arch": ["armhf", "armv7", "aarch64", "amd64", "i386"],
   "startup": "before",
   "boot": "auto",
+  "homeassistant_api": true,
   "options": {
-    "SONOS_CLIENT_ID":"",
-    "SONOS_CLIENT_SECRET":"",
-    "GOOGLE_TTS_LANGUAGE":"en-US"
+    "SONOS_CLIENT_ID": "",
+    "SONOS_CLIENT_SECRET": "",
+    "GOOGLE_TTS_LANGUAGE": "en-GB",
+    "CLOUD_TTS_LANGUAGE": "en-GB",
+    "CLOUD_TTS_GENDER": "male"
   },
   "schema": {
     "SONOS_CLIENT_ID": "str",
     "SONOS_CLIENT_SECRET": "str",
-    "GOOGLE_TTS_LANGUAGE": "str"
+    "GOOGLE_TTS_LANGUAGE": "str",
+    "CLOUD_TTS_LANGUAGE": "str",
+    "CLOUD_TTS_GENDER": "str"
   },
   "ports": {
-     "8349/tcp": 8349
-   }
+    "8349/tcp": 8349
+  }
 }

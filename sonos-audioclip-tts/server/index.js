@@ -23,32 +23,35 @@ The MIT License (MIT)
  SOFTWARE.
  */
 
-const express = require('express');
-const bodyParser = require('body-parser');
-const pino = require('express-pino-logger')();
-const simpleOauthModule = require('simple-oauth2');
-const googleTTS = require('google-tts-api');
-const storage = require('node-persist');
-const fs = require('fs');
-const async = require('async');
-const os = require('os');
-const fetch = require('node-fetch');
+const express = require("express")
+const bodyParser = require("body-parser")
+const pino = require("express-pino-logger")()
+const simpleOauthModule = require("simple-oauth2")
+const googleTTS = require("google-tts-api")
+const storage = require("node-persist")
+const fs = require("fs")
+const async = require("async")
+const os = require("os")
+const fetch = require("node-fetch")
 
-const app = express();
-app.use(bodyParser.urlencoded({ extended: false }));
-app.use(pino);
+const app = express()
+app.use(bodyParser.urlencoded({ extended: false }))
+app.use(pino)
 
 // Load Configuration
-let rawconfig = fs.readFileSync('../../data/options.json');
-let config = JSON.parse(rawconfig);
+let rawconfig = fs.readFileSync("../../data/options.json")
+let config = JSON.parse(rawconfig)
 
 console.log("Starting with configuration:", config)
 
 const localUrl = config.LOCAL_URL ? config.LOCAL_URL : os.hostname()
-const port = config.PORT ? config.PORT : '8349'
+const port = config.PORT ? config.PORT : "8349"
 
-const baseUrl = 'http://' + localUrl + ':' + port
-const baseUrlRedirect = localUrl === "localhost" ? 'http://' + localUrl + ':' + port : 'https://' + localUrl + ':' + port
+const baseUrl = "http://" + localUrl + ":" + port
+const baseUrlRedirect =
+  localUrl === "localhost"
+    ? "http://" + localUrl + ":" + port
+    : "https://" + localUrl + ":" + port
 
 // This section services the OAuth2 flow
 const oauth2 = simpleOauthModule.create({
@@ -57,77 +60,82 @@ const oauth2 = simpleOauthModule.create({
     secret: config.SONOS_CLIENT_SECRET,
   },
   auth: {
-    tokenHost: 'https://api.sonos.com',
-    tokenPath: '/login/v3/oauth/access',
-    authorizePath: '/login/v3/oauth',
+    tokenHost: "https://api.sonos.com",
+    tokenPath: "/login/v3/oauth/access",
+    authorizePath: "/login/v3/oauth",
   },
-});
+})
 
 // Authorization uri definition
 const authorizationUri = oauth2.authorizationCode.authorizeURL({
-  redirect_uri: baseUrlRedirect + '/redirect',
-  scope: 'playback-control-all',
-  state: 'none',
-});
+  redirect_uri: baseUrlRedirect + "/redirect",
+  scope: "playback-control-all",
+  state: "none",
+})
 
 // Get our token set up
 
-let token; // This'll hold our token, which we'll use in the Auth header on calls to the Sonos Control API
-let authRequired = false; // We'll use this to keep track of when auth is needed (first run, failed refresh, etc) and return that fact to the calling app so it can redirect
+let token // This'll hold our token, which we'll use in the Auth header on calls to the Sonos Control API
+let authRequired = false // We'll use this to keep track of when auth is needed (first run, failed refresh, etc) and return that fact to the calling app so it can redirect
 
 // This is a function we run when we first start the app. It gets the token from the local store, or sets authRequired if it's unable to
 async function getToken() {
   if (!storage.getItem) {
     // Let's initialize our local storage to keep the auth token
     // This way we don't have to log in every time the app restarts
-    await storage.init({ dir: '../../data/persist/' });
+    await storage.init({ dir: "../../data/persist/" })
   }
-  const currentToken = await storage.getItem('token');
+  const currentToken = await storage.getItem("token")
   if (currentToken === undefined) {
-    authRequired = true;
-    return;
+    authRequired = true
+    return
   }
   try {
-    token = oauth2.accessToken.create(currentToken.token);
+    token = oauth2.accessToken.create(currentToken.token)
 
     if (token.expired()) {
       try {
-        token = await token.refresh();
-        await storage.setItem('token', token); // And save it to local storage to capture the new access token and expiry date
+        token = await token.refresh()
+        await storage.setItem("token", token) // And save it to local storage to capture the new access token and expiry date
       } catch (error) {
-        authRequired = true;
-        console.log('Error refreshing access token: ', error.message);
+        authRequired = true
+        console.log("Error refreshing access token: ", error.message)
       }
     }
   } catch (error) {
-    console.log('Access Token Error', error.message);
+    console.log("Access Token Error", error.message)
   }
 }
 
 async function getHouseholds(res) {
   await getToken()
-  res.setHeader('Content-Type', 'application/json');
+  res.setHeader("Content-Type", "application/json")
   if (authRequired) {
-    res.send(JSON.stringify({ 'success': false, authRequired: true }));
-    return;
+    res.send(JSON.stringify({ success: false, authRequired: true }))
+    return
   }
-  let hhResult;
+  let hhResult
 
   try {
-    hhResult = await fetch(`https://api.ws.sonos.com/control/api/v1/households`, {
-      method: 'GET',
-      headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token.token.access_token}` },
-    });
-  }
-  catch (err) {
-    res.send(JSON.stringify({ 'success': false, error: err.stack }));
-    return;
+    hhResult = await fetch(
+      `https://api.ws.sonos.com/control/api/v1/households`,
+      {
+        method: "GET",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token.token.access_token}`,
+        },
+      }
+    )
+  } catch (err) {
+    res.send(JSON.stringify({ success: false, error: err.stack }))
+    return
   }
 
   // We convert to text rather than JSON here, since, on some errors, the Sonos API returns plain text
-  const hhResultText = await hhResult.text();
+  const hhResultText = await hhResult.text()
 
-  const json = JSON.parse(hhResultText);
+  const json = JSON.parse(hhResultText)
 
   return json
 }
@@ -136,38 +144,42 @@ async function parseClipCapableDevices(households) {
   let allClipCapableDevices = {}
   for (let household of households) {
     allClipCapableDevices[household.id] = []
-    let groupsResult;
+    let groupsResult
     try {
-      groupsResult = await fetch(`https://api.ws.sonos.com/control/api/v1/households/${household.id}/groups`, {
-        method: 'GET',
-        headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token.token.access_token}` },
-      });
-    }
-    catch (err) {
-      console.log(err)
-      continue;
-    }
-
-    const groupsResultText = await groupsResult.text();
-
-
-    let groups;
-    try {
-      groups = JSON.parse(groupsResultText);
-      if (groups.groups === undefined) { // If there isn't a groups object, the fetch didn't work, and we'll let the caller know
-        continue
-      }
-    }
-    catch (err) {
+      groupsResult = await fetch(
+        `https://api.ws.sonos.com/control/api/v1/households/${household.id}/groups`,
+        {
+          method: "GET",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token.token.access_token}`,
+          },
+        }
+      )
+    } catch (err) {
       console.log(err)
       continue
     }
 
-    const players = groups.players; // Let's get all the clip capable players
-    const clipCapablePlayers = [];
+    const groupsResultText = await groupsResult.text()
+
+    let groups
+    try {
+      groups = JSON.parse(groupsResultText)
+      if (groups.groups === undefined) {
+        // If there isn't a groups object, the fetch didn't work, and we'll let the caller know
+        continue
+      }
+    } catch (err) {
+      console.log(err)
+      continue
+    }
+
+    const players = groups.players // Let's get all the clip capable players
+    const clipCapablePlayers = []
     for (let player of players) {
-      if (player.capabilities.includes('AUDIO_CLIP')) {
-        clipCapablePlayers.push({ 'id': player.id, 'name': player.name });
+      if (player.capabilities.includes("AUDIO_CLIP")) {
+        clipCapablePlayers.push({ id: player.id, name: player.name })
       }
     }
     allClipCapableDevices[household.id] = clipCapablePlayers
@@ -175,273 +187,342 @@ async function parseClipCapableDevices(households) {
   return allClipCapableDevices
 }
 
-getToken();
+getToken()
 
 // Initial page redirecting to Sonos
-app.get('/auth', async (req, res) => {
-  res.redirect(authorizationUri);
-});
+app.get("/auth", async (req, res) => {
+  res.redirect(authorizationUri)
+})
 
 // redirect service parsing the authorization token and asking for the access token
-app.get('/redirect', async (req, res) => {
-  const code = req.query.code;
-  const redirect_uri = baseUrlRedirect + '/redirect';
+app.get("/redirect", async (req, res) => {
+  const code = req.query.code
+  const redirect_uri = baseUrlRedirect + "/redirect"
 
   const options = {
-    code, redirect_uri,
-  };
+    code,
+    redirect_uri,
+  }
 
   try {
-    const result = await oauth2.authorizationCode.getToken(options);
+    const result = await oauth2.authorizationCode.getToken(options)
 
-    console.log('The resulting token: ', result);
+    console.log("The resulting token: ", result)
 
-    token = oauth2.accessToken.create(result); // Save the token for use in Sonos API calls
+    token = oauth2.accessToken.create(result) // Save the token for use in Sonos API calls
 
-    await storage.setItem('token',token); // And save it to local storage for use the next time we start the app
-    authRequired = false; // And we're all good now. Don't need auth any more
-    res.send('Auth Complete');
-  } catch(error) {
-    console.error('Access Token Error', error.message);
-    return res.status(500).json('Authentication failed');
+    await storage.setItem("token", token) // And save it to local storage for use the next time we start the app
+    authRequired = false // And we're all good now. Don't need auth any more
+    res.send("Auth Complete")
+  } catch (error) {
+    console.error("Access Token Error", error.message)
+    return res.status(500).json("Authentication failed")
   }
-});
+})
 
 // This section services the front end.
 
 // This route handler returns the available households for the authenticated user
-app.get('/api/allClipCapableDevices', async (req, res) => {
+app.get("/api/allClipCapableDevices", async (req, res) => {
   const json = await getHouseholds(res)
 
   // Let's try to immediately convert that text to JSON,
   try {
-    if (json && json.households !== undefined) { // if there's a households object, things went well, and we'll return that array of hhids
-      const allClipCapableDevices = await parseClipCapableDevices(json.households)
-      res.send(JSON.stringify({ 'success': true, 'households': allClipCapableDevices }, null, '\t'));
+    if (json && json.households !== undefined) {
+      // if there's a households object, things went well, and we'll return that array of hhids
+      const allClipCapableDevices = await parseClipCapableDevices(
+        json.households
+      )
+      res.send(
+        JSON.stringify(
+          { success: true, households: allClipCapableDevices },
+          null,
+          "\t"
+        )
+      )
+    } else {
+      res.send(JSON.stringify({ success: false, error: json.error }))
     }
-    else {
-      res.send(JSON.stringify({ 'success': false, 'error': json.error }));
-    }
-  }
-  catch (err) {
+  } catch (err) {
     console.log(err)
-    res.send(JSON.stringify({ 'success': false, 'error': err }));
+    res.send(JSON.stringify({ success: false, error: err }))
   }
+})
 
-});
-
-app.get('/api/speakText', async (req, res) => {
+app.get("/api/speakText", async (req, res) => {
   await getToken()
-  const text = req.query.text;
-  const volume = req.query.volume;
-  const playerId = req.query.playerId;
-  const priority = req.query.prio;
+  const text = req.query.text
+  const volume = req.query.volume
+  const playerId = req.query.playerId
+  const priority = req.query.prio
 
-  const speakTextRes = res;
-  speakTextRes.setHeader('Content-Type', 'application/json');
+  const speakTextRes = res
+  speakTextRes.setHeader("Content-Type", "application/json")
   if (authRequired) {
-    res.send(JSON.stringify({ 'success': false, authRequired: true }));
+    res.send(JSON.stringify({ success: false, authRequired: true }))
   }
 
-  if (text == null || playerId == null) { // Return if either is null
-    speakTextRes.send(JSON.stringify({ 'success': false, error: 'Missing Parameters' }));
-    return;
+  if (text == null || playerId == null) {
+    // Return if either is null
+    speakTextRes.send(
+      JSON.stringify({ success: false, error: "Missing Parameters" })
+    )
+    return
   }
 
-  let speechUrl;
+  let speechUrl
 
-  try { // Let's make a call to the google tts api and get the url for our TTS file
-    speechUrl = await googleTTS(text, config.GOOGLE_TTS_LANGUAGE, 1);
-  }
-  catch (err) {
-    speakTextRes.send(JSON.stringify({ 'success': false, error: err.stack }));
-    return;
+  try {
+    // Let's make a call to the google tts api and get the url for our TTS file
+    speechUrl = await googleTTS(text, config.GOOGLE_TTS_LANGUAGE, 1)
+  } catch (err) {
+    speakTextRes.send(JSON.stringify({ success: false, error: err.stack }))
+    return
   }
 
-  let body = { streamUrl: speechUrl, name: 'Sonos TTS', appId: 'com.me.sonosspeech' };
+  let body = {
+    streamUrl: speechUrl,
+    name: "Sonos TTS",
+    appId: "com.me.sonosspeech",
+  }
   if (volume != null) {
     body.volume = parseInt(volume)
   }
-  if (priority && (priority.toUpperCase() === "LOW" || priority.toUpperCase() === "HIGH")) {
+  if (
+    priority &&
+    (priority.toUpperCase() === "LOW" || priority.toUpperCase() === "HIGH")
+  ) {
     body.priority = priority.toUpperCase()
   }
 
-  let audioClipRes;
-
-  try { // And call the audioclip API, with the playerId in the url path, and the text in the JSON body
-    audioClipRes = await fetch(`https://api.ws.sonos.com/control/api/v1/players/${playerId}/audioClip`, {
-      method: 'POST',
-      body: JSON.stringify(body),
-      headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token.token.access_token}` },
-    });
-  }
-  catch (err) {
-    speakTextRes.send(JSON.stringify({ 'success': false, error: err.stack }));
-    return;
-  }
-
-  const audioClipResText = await audioClipRes.text(); // Same thing as above: convert to text, since occasionally the Sonos API returns text
+  let audioClipRes
 
   try {
-    const json = JSON.parse(audioClipResText);
+    // And call the audioclip API, with the playerId in the url path, and the text in the JSON body
+    audioClipRes = await fetch(
+      `https://api.ws.sonos.com/control/api/v1/players/${playerId}/audioClip`,
+      {
+        method: "POST",
+        body: JSON.stringify(body),
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token.token.access_token}`,
+        },
+      }
+    )
+  } catch (err) {
+    speakTextRes.send(JSON.stringify({ success: false, error: err.stack }))
+    return
+  }
+
+  const audioClipResText = await audioClipRes.text() // Same thing as above: convert to text, since occasionally the Sonos API returns text
+
+  try {
+    const json = JSON.parse(audioClipResText)
     if (json.id !== undefined) {
-      speakTextRes.send(JSON.stringify({ 'success': true }));
+      speakTextRes.send(JSON.stringify({ success: true }))
+    } else {
+      speakTextRes.send(
+        JSON.stringify({ success: false, error: json.errorCode })
+      )
     }
-    else {
-      speakTextRes.send(JSON.stringify({ 'success': false, 'error': json.errorCode }));
-    }
+  } catch (err) {
+    speakTextRes.send(
+      JSON.stringify({ success: false, error: audioClipResText })
+    )
   }
-  catch (err) {
-    speakTextRes.send(JSON.stringify({ 'success': false, 'error': audioClipResText }));
-  }
-});
+})
 
-app.get('/api/speakHass', async (req, res) => {
+app.get("/api/speakHass", async (req, res) => {
   await getToken()
-  const text = req.query.text;
-  const volume = req.query.volume;
-  const playerId = req.query.playerId;
-  const priority = req.query.prio;
-  const hassUrl = config.HASS_URL;
-  const hassToken = config.HASS_TOKEN;
+  const text = req.query.text
+  const volume = req.query.volume
+  const playerId = req.query.playerId
+  const priority = req.query.prio
+  const hassUrl = "http://supervisor/core"
+  const hassToken = process.env.SUPERVISOR_TOKEN
 
-  const speakHassRes = res;
-  speakHassRes.setHeader('Content-Type', 'application/json');
+  const speakHassRes = res
+  speakHassRes.setHeader("Content-Type", "application/json")
   if (authRequired) {
-    res.send(JSON.stringify({ 'success': false, authRequired: true }));
+    res.send(JSON.stringify({ success: false, authRequired: true }))
   }
 
-  if (text == null || playerId == null) { // Return if either is null
-    speakHassRes.send(JSON.stringify({ 'success': false, error: 'Missing Parameters' }));
-    return;
+  if (text == null || playerId == null) {
+    // Return if either is null
+    speakHassRes.send(
+      JSON.stringify({ success: false, error: "Missing Parameters" })
+    )
+    return
   }
 
   // Set the HASS API call parameters
-  let ttsbody = { platform: 'cloud', language: 'en-GB', options: { gender: 'male' }, message: text };
-
-  let speechRes;
-
-  try { // Let's make a call to the HASS api to get our URL
-    speechRes = await fetch(`${hassUrl}/api/tts_get_url`, {
-      method: 'POST',
-      body: JSON.stringify(ttsbody),
-      headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${hassToken}` },
-    });
-  }
-  catch (err) {
-    speakHassRes.send(JSON.stringify({ 'success': false, error: err.stack }));
-    return;
+  let ttsbody = {
+    platform: "cloud",
+    language: config.CLOUD_TTS_LANGUAGE,
+    options: { gender: config.CLOUD_TTS_GENDER },
+    message: text,
   }
 
-  const speechResText = await speechRes.text();
+  let speechRes
 
   try {
-    const jsonurl = JSON.parse(speechResText);
+    // Let's make a call to the HASS api to get our URL
+    speechRes = await fetch(`${hassUrl}/api/tts_get_url`, {
+      method: "POST",
+      body: JSON.stringify(ttsbody),
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${hassToken}`,
+      },
+    })
+  } catch (err) {
+    speakHassRes.send(JSON.stringify({ success: false, error: err.stack }))
+    return
+  }
+
+  const speechResText = await speechRes.text()
+
+  try {
+    const jsonurl = JSON.parse(speechResText)
     if (jsonurl.url !== undefined) {
-      var speechUrl = jsonurl.url;
+      var speechUrl = jsonurl.url
+    } else {
+      speakHassRes.send(
+        JSON.stringify({ success: false, error: json.errorCode })
+      )
     }
-    else {
-      speakHassRes.send(JSON.stringify({ 'success': false, 'error': json.errorCode }));
-    }
+  } catch (err) {
+    speakHassRes.send(
+      JSON.stringify({ success: false, error: audioClipResText })
+    )
   }
-  catch (err) {
-    speakHassRes.send(JSON.stringify({ 'success': false, 'error': audioClipResText }));
+  let body = {
+    streamUrl: speechUrl,
+    name: "Sonos TTS",
+    appId: "com.me.sonosspeech",
   }
-  let body = { streamUrl: speechUrl, name: 'Sonos TTS', appId: 'com.me.sonosspeech' };
   if (volume != null) {
     body.volume = parseInt(volume)
   }
-  if (priority && (priority.toUpperCase() === "LOW" || priority.toUpperCase() === "HIGH")) {
+  if (
+    priority &&
+    (priority.toUpperCase() === "LOW" || priority.toUpperCase() === "HIGH")
+  ) {
     body.priority = priority.toUpperCase()
   }
 
-  let audioClipRes;
-
-  try { // And call the audioclip API, with the playerId in the url path, and the text in the JSON body
-    audioClipRes = await fetch(`https://api.ws.sonos.com/control/api/v1/players/${playerId}/audioClip`, {
-      method: 'POST',
-      body: JSON.stringify(body),
-      headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token.token.access_token}` },
-    });
-  }
-  catch (err) {
-    speakHassRes.send(JSON.stringify({ 'success': false, error: err.stack }));
-    return;
-  }
-
-  const audioClipResText = await audioClipRes.text(); // Same thing as above: convert to text, since occasionally the Sonos API returns text
+  let audioClipRes
 
   try {
-    const json = JSON.parse(audioClipResText);
-    if (json.id !== undefined) {
-      speakHassRes.send(JSON.stringify({ 'success': true }));
-    }
-    else {
-      speakHassRes.send(JSON.stringify({ 'success': false, 'error': json.errorCode }));
-    }
+    // And call the audioclip API, with the playerId in the url path, and the text in the JSON body
+    audioClipRes = await fetch(
+      `https://api.ws.sonos.com/control/api/v1/players/${playerId}/audioClip`,
+      {
+        method: "POST",
+        body: JSON.stringify(body),
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token.token.access_token}`,
+        },
+      }
+    )
+  } catch (err) {
+    speakHassRes.send(JSON.stringify({ success: false, error: err.stack }))
+    return
   }
-  catch (err) {
-    speakHassRes.send(JSON.stringify({ 'success': false, 'error': audioClipResText }));
-  }
-});
 
-app.get('/api/speakHassAll', async (req, res) => {
+  const audioClipResText = await audioClipRes.text() // Same thing as above: convert to text, since occasionally the Sonos API returns text
+
+  try {
+    const json = JSON.parse(audioClipResText)
+    if (json.id !== undefined) {
+      speakHassRes.send(JSON.stringify({ success: true }))
+    } else {
+      speakHassRes.send(
+        JSON.stringify({ success: false, error: json.errorCode })
+      )
+    }
+  } catch (err) {
+    speakHassRes.send(
+      JSON.stringify({ success: false, error: audioClipResText })
+    )
+  }
+})
+
+app.get("/api/speakHassAll", async (req, res) => {
   await getToken()
   const json = await getHouseholds(res)
-  const text = req.query.text;
-  const exclude = req.query.exclude;
-  const volume = req.query.volume;
-  const priority = req.query.prio;
-  const hassUrl = config.HASS_URL;
-  const hassToken = config.HASS_TOKEN;
+  const text = req.query.text
+  const exclude = req.query.exclude
+  const volume = req.query.volume
+  const priority = req.query.prio
+  const hassUrl = "http://supervisor/core"
+  const hassToken = process.env.SUPERVISOR_TOKEN
 
-  const speakTextRes = res;
-  speakTextRes.setHeader('Content-Type', 'application/json');
+  const speakTextRes = res
+  speakTextRes.setHeader("Content-Type", "application/json")
   if (authRequired) {
-    res.send(JSON.stringify({ 'success': false, authRequired: true }));
+    res.send(JSON.stringify({ success: false, authRequired: true }))
   }
 
   // Set the HASS API call parameters
-  let ttsbody = { platform: 'cloud', language: 'en-GB', options: { gender: 'male' }, message: text };
-
-  let speechRes;
-
-  try { // Let's make a call to the HASS api to get our URL
-    speechRes = await fetch(`${hassUrl}/api/tts_get_url`, {
-      method: 'POST',
-      body: JSON.stringify(ttsbody),
-      headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${hassToken}` },
-    });
-  }
-  catch (err) {
-    speakHassRes.send(JSON.stringify({ 'success': false, error: err.stack }));
-    return;
+  let ttsbody = {
+    platform: "cloud",
+    language: config.CLOUD_TTS_LANGUAGE,
+    options: { gender: config.CLOUD_TTS_GENDER },
+    message: text,
   }
 
-  const speechResText = await speechRes.text();
+  let speechRes
 
   try {
-    const jsonurl = JSON.parse(speechResText);
-    if (jsonurl.url !== undefined) {
-      var speechUrl = jsonurl.url;
-    }
-    else {
-      speakHassRes.send(JSON.stringify({ 'success': false, 'error': json.errorCode }));
-    }
+    // Let's make a call to the HASS api to get our URL
+    speechRes = await fetch(`${hassUrl}/api/tts_get_url`, {
+      method: "POST",
+      body: JSON.stringify(ttsbody),
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${hassToken}`,
+      },
+    })
+  } catch (err) {
+    speakHassRes.send(JSON.stringify({ success: false, error: err.stack }))
+    return
   }
-  catch (err) {
-    speakHassRes.send(JSON.stringify({ 'success': false, 'error': audioClipResText }));
+
+  const speechResText = await speechRes.text()
+
+  try {
+    const jsonurl = JSON.parse(speechResText)
+    if (jsonurl.url !== undefined) {
+      var speechUrl = jsonurl.url
+    } else {
+      speakHassRes.send(
+        JSON.stringify({ success: false, error: json.errorCode })
+      )
+    }
+  } catch (err) {
+    speakHassRes.send(
+      JSON.stringify({ success: false, error: audioClipResText })
+    )
   }
 
   let body
 
-  body = { streamUrl: speechUrl, name: 'Sonos TTS', appId: 'com.me.sonosspeech' };
-  
+  body = {
+    streamUrl: speechUrl,
+    name: "Sonos TTS",
+    appId: "com.me.sonosspeech",
+  }
 
   if (volume != null) {
     body.volume = parseInt(volume)
   }
-  if (priority && (priority.toUpperCase() === "LOW" || priority.toUpperCase() === "HIGH")) {
+  if (
+    priority &&
+    (priority.toUpperCase() === "LOW" || priority.toUpperCase() === "HIGH")
+  ) {
     body.priority = priority.toUpperCase()
   }
 
@@ -454,35 +535,54 @@ app.get('/api/speakHassAll', async (req, res) => {
   for (let householdId in allClipCapableDevices) {
     let household = allClipCapableDevices[householdId]
     for (let player of household) {
-      if (!((Array.isArray(exclude) && exclude.includes(player.name)) || exclude === player.name))
-        requestUrls.push(`https://api.ws.sonos.com/control/api/v1/players/${player.id}/audioClip`)
+      if (
+        !(
+          (Array.isArray(exclude) && exclude.includes(player.name)) ||
+          exclude === player.name
+        )
+      )
+        requestUrls.push(
+          `https://api.ws.sonos.com/control/api/v1/players/${player.id}/audioClip`
+        )
     }
   }
 
-  async.map(requestUrls, function (url, callback) {
-    fetch(url, {
-      method: 'POST',
-      body: JSON.stringify(body),
-      headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token.token.access_token}` },
-    })
-      .then(function (response) {
-        response.text()
-          .then(function (text) { callback(null, text); })
-          .catch(function (err) { callback(err, null); });
+  async.map(
+    requestUrls,
+    function (url, callback) {
+      fetch(url, {
+        method: "POST",
+        body: JSON.stringify(body),
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token.token.access_token}`,
+        },
       })
-      .catch(function (reason) { callback(reason, null); });
-  },
+        .then(function (response) {
+          response
+            .text()
+            .then(function (text) {
+              callback(null, text)
+            })
+            .catch(function (err) {
+              callback(err, null)
+            })
+        })
+        .catch(function (reason) {
+          callback(reason, null)
+        })
+    },
     function (err, results) {
       if (err) {
-        speakTextRes.send(JSON.stringify({ 'success': false, 'error': err })); // Error in Fetch in one/more devices
-      }
-      else {
+        speakTextRes.send(JSON.stringify({ success: false, error: err })) // Error in Fetch in one/more devices
+      } else {
         // Check Sonos return value of all requests
-        let success = true, error = "";
+        let success = true,
+          error = ""
 
         for (let resultId in results) {
           const result = results[resultId]
-          const json = JSON.parse(result);
+          const json = JSON.parse(result)
 
           if (json.id === undefined) {
             success = false
@@ -491,115 +591,136 @@ app.get('/api/speakHassAll', async (req, res) => {
         }
 
         if (success) {
-          speakTextRes.send(JSON.stringify({ 'success': true }));
-        }
-        else {
-          speakTextRes.send(JSON.stringify({ 'success': false, 'error': error }));
+          speakTextRes.send(JSON.stringify({ success: true }))
+        } else {
+          speakTextRes.send(JSON.stringify({ success: false, error: error }))
         }
       }
     }
-  );
-});
+  )
+})
 
-app.get('/api/playClip', async (req, res) => {
+app.get("/api/playClip", async (req, res) => {
   await getToken()
-  let streamUrl = req.query.streamUrl;
-  const volume = req.query.volume;
-  const playerId = req.query.playerId;
-  const priority = req.query.prio;
+  let streamUrl = req.query.streamUrl
+  const volume = req.query.volume
+  const playerId = req.query.playerId
+  const priority = req.query.prio
 
-  const speakTextRes = res;
-  speakTextRes.setHeader('Content-Type', 'application/json');
+  const speakTextRes = res
+  speakTextRes.setHeader("Content-Type", "application/json")
   if (authRequired) {
-    res.send(JSON.stringify({ 'success': false, authRequired: true }));
+    res.send(JSON.stringify({ success: false, authRequired: true }))
   }
 
-  if (playerId == null) { // Return if either is null
-    speakTextRes.send(JSON.stringify({ 'success': false, error: 'Missing Parameter playerId' }));
-    return;
+  if (playerId == null) {
+    // Return if either is null
+    speakTextRes.send(
+      JSON.stringify({ success: false, error: "Missing Parameter playerId" })
+    )
+    return
   }
 
   let body
 
   if (streamUrl) {
-    if (!streamUrl.includes('http') && !streamUrl.includes('https')) {
-      streamUrl = baseUrl + '/mp3/' + streamUrl // Play local file
+    if (!streamUrl.includes("http") && !streamUrl.includes("https")) {
+      streamUrl = baseUrl + "/mp3/" + streamUrl // Play local file
     }
-    body = { streamUrl: streamUrl, name: 'Sonos TTS', appId: 'com.me.sonosspeech' };
-  }
-  else {
-    body = { clipType: "CHIME", name: 'Sonos TTS', appId: 'com.me.sonosspeech' }; // only supported clipType for now is CHIME
+    body = {
+      streamUrl: streamUrl,
+      name: "Sonos TTS",
+      appId: "com.me.sonosspeech",
+    }
+  } else {
+    body = { clipType: "CHIME", name: "Sonos TTS", appId: "com.me.sonosspeech" } // only supported clipType for now is CHIME
   }
 
   if (volume != null) {
     body.volume = parseInt(volume)
   }
-  if (priority && (priority.toUpperCase() === "LOW" || priority.toUpperCase() === "HIGH")) {
+  if (
+    priority &&
+    (priority.toUpperCase() === "LOW" || priority.toUpperCase() === "HIGH")
+  ) {
     body.priority = priority.toUpperCase()
   }
 
-  let audioClipRes;
+  let audioClipRes
 
   console.log(body)
 
-  try { // And call the audioclip API, with the playerId in the url path, and the text in the JSON body
-    audioClipRes = await fetch(`https://api.ws.sonos.com/control/api/v1/players/${playerId}/audioClip`, {
-      method: 'POST',
-      body: JSON.stringify(body),
-      headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token.token.access_token}` },
-    });
-  }
-  catch (err) {
-    speakTextRes.send(JSON.stringify({ 'success': false, error: err.stack }));
-    return;
+  try {
+    // And call the audioclip API, with the playerId in the url path, and the text in the JSON body
+    audioClipRes = await fetch(
+      `https://api.ws.sonos.com/control/api/v1/players/${playerId}/audioClip`,
+      {
+        method: "POST",
+        body: JSON.stringify(body),
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token.token.access_token}`,
+        },
+      }
+    )
+  } catch (err) {
+    speakTextRes.send(JSON.stringify({ success: false, error: err.stack }))
+    return
   }
 
-  const audioClipResText = await audioClipRes.text(); // Same thing as above: convert to text, since occasionally the Sonos API returns text
+  const audioClipResText = await audioClipRes.text() // Same thing as above: convert to text, since occasionally the Sonos API returns text
 
   try {
-    const json = JSON.parse(audioClipResText);
+    const json = JSON.parse(audioClipResText)
     if (json.id !== undefined) {
-      speakTextRes.send(JSON.stringify({ 'success': true }));
+      speakTextRes.send(JSON.stringify({ success: true }))
+    } else {
+      speakTextRes.send(
+        JSON.stringify({ success: false, error: json.errorCode })
+      )
     }
-    else {
-      speakTextRes.send(JSON.stringify({ 'success': false, 'error': json.errorCode }));
-    }
+  } catch (err) {
+    speakTextRes.send(
+      JSON.stringify({ success: false, error: audioClipResText })
+    )
   }
-  catch (err) {
-    speakTextRes.send(JSON.stringify({ 'success': false, 'error': audioClipResText }));
-  }
-});
+})
 
-
-app.get('/api/playClipAll', async (req, res) => {
+app.get("/api/playClipAll", async (req, res) => {
   const json = await getHouseholds(res)
-  let streamUrl = req.query.streamUrl;
-  const volume = req.query.volume;
-  const priority = req.query.prio;
-  const exclude = req.query.exclude;
+  let streamUrl = req.query.streamUrl
+  const volume = req.query.volume
+  const priority = req.query.prio
+  const exclude = req.query.exclude
 
-  const speakTextRes = res;
-  speakTextRes.setHeader('Content-Type', 'application/json');
+  const speakTextRes = res
+  speakTextRes.setHeader("Content-Type", "application/json")
   if (authRequired) {
-    res.send(JSON.stringify({ 'success': false, authRequired: true }));
+    res.send(JSON.stringify({ success: false, authRequired: true }))
   }
 
   let body
 
   if (streamUrl) {
-    if (!streamUrl.includes('http') && !streamUrl.includes('https')) {
-      streamUrl = baseUrl + '/mp3/' + streamUrl // Play local file
+    if (!streamUrl.includes("http") && !streamUrl.includes("https")) {
+      streamUrl = baseUrl + "/mp3/" + streamUrl // Play local file
     }
-    body = { streamUrl: streamUrl, name: 'Sonos TTS', appId: 'com.me.sonosspeech' };
-  }
-  else {
-    body = { clipType: "CHIME", name: 'Sonos TTS', appId: 'com.me.sonosspeech' }; // only supported clipType for now is CHIME
+    body = {
+      streamUrl: streamUrl,
+      name: "Sonos TTS",
+      appId: "com.me.sonosspeech",
+    }
+  } else {
+    body = { clipType: "CHIME", name: "Sonos TTS", appId: "com.me.sonosspeech" } // only supported clipType for now is CHIME
   }
 
   if (volume != null) {
     body.volume = parseInt(volume)
   }
-  if (priority && (priority.toUpperCase() === "LOW" || priority.toUpperCase() === "HIGH")) {
+  if (
+    priority &&
+    (priority.toUpperCase() === "LOW" || priority.toUpperCase() === "HIGH")
+  ) {
     body.priority = priority.toUpperCase()
   }
 
@@ -612,35 +733,54 @@ app.get('/api/playClipAll', async (req, res) => {
   for (let householdId in allClipCapableDevices) {
     let household = allClipCapableDevices[householdId]
     for (let player of household) {
-      if (!((Array.isArray(exclude) && exclude.includes(player.name)) || exclude === player.name))
-        requestUrls.push(`https://api.ws.sonos.com/control/api/v1/players/${player.id}/audioClip`)
+      if (
+        !(
+          (Array.isArray(exclude) && exclude.includes(player.name)) ||
+          exclude === player.name
+        )
+      )
+        requestUrls.push(
+          `https://api.ws.sonos.com/control/api/v1/players/${player.id}/audioClip`
+        )
     }
   }
 
-  async.map(requestUrls, function (url, callback) {
-    fetch(url, {
-      method: 'POST',
-      body: JSON.stringify(body),
-      headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token.token.access_token}` },
-    })
-      .then(function (response) {
-        response.text()
-          .then(function (text) { callback(null, text); })
-          .catch(function (err) { callback(err, null); });
+  async.map(
+    requestUrls,
+    function (url, callback) {
+      fetch(url, {
+        method: "POST",
+        body: JSON.stringify(body),
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token.token.access_token}`,
+        },
       })
-      .catch(function (reason) { callback(reason, null); });
-  },
+        .then(function (response) {
+          response
+            .text()
+            .then(function (text) {
+              callback(null, text)
+            })
+            .catch(function (err) {
+              callback(err, null)
+            })
+        })
+        .catch(function (reason) {
+          callback(reason, null)
+        })
+    },
     function (err, results) {
       if (err) {
-        speakTextRes.send(JSON.stringify({ 'success': false, 'error': err })); // Error in Fetch in one/more devices
-      }
-      else {
+        speakTextRes.send(JSON.stringify({ success: false, error: err })) // Error in Fetch in one/more devices
+      } else {
         // Check Sonos return value of all requests
-        let success = true, error = "";
+        let success = true,
+          error = ""
 
         for (let resultId in results) {
           const result = results[resultId]
-          const json = JSON.parse(result);
+          const json = JSON.parse(result)
 
           if (json.id === undefined) {
             success = false
@@ -649,17 +789,14 @@ app.get('/api/playClipAll', async (req, res) => {
         }
 
         if (success) {
-          speakTextRes.send(JSON.stringify({ 'success': true }));
-        }
-        else {
-          speakTextRes.send(JSON.stringify({ 'success': false, 'error': error }));
+          speakTextRes.send(JSON.stringify({ success: true }))
+        } else {
+          speakTextRes.send(JSON.stringify({ success: false, error: error }))
         }
       }
     }
-  );
-});
+  )
+})
 
-app.listen(port, () =>
-  console.log('Express server is running on ' + baseUrl)
-);
-app.use('/mp3', express.static('../../data/mp3'))
+app.listen(port, () => console.log("Express server is running on " + baseUrl))
+app.use("/mp3", express.static("../../data/mp3"))
